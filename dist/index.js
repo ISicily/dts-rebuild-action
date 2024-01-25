@@ -61380,27 +61380,31 @@ const main = async () => {
     const repo = core.getInput('repo', { required: true });
     const token = core.getInput('token', { required: true });
 
+    const collectionFile = core.getInput('collectionFile', { required: true });
+    const errorFile = core.getInput('errorFile', { required: true });
+    const frequency = core.getInput('frequency', { required: false });
+
     const octokit = new github.getOctokit(token);
 
     const lastCommit = await octokit.rest.repos.getCommit({owner, repo, ref: 'heads/master'});
     const commitTimestamp = Date.parse(lastCommit.data.commit.committer.date)
     var now =  new Date();
+    const twentyFourHoursAsMilliseconds = 86400000
+    const millisecondsSinceLastRun = frequency ? Integer.parse(frequency) : twentyFourHoursAsMilliseconds
 
-    // 86400000 milliseconds in 24hr
-    // 600000 milliseconds in ten minutes
 
-    if(600000 < now.getTime()-commitTimestamp) {
-      console.log("A commit occurred in the last ten minutes so running build...")
+    if(millisecondsSinceLastRun < now.getTime()-commitTimestamp) {
+      console.log("A commit occurred in the last 24 hours so running build...")
     } else {
-      console.log('A commit did not occur in the last 10 minutes so exiting without rebuild.');
+      console.log('A commit did not occur in the last 24 hours so exiting without rebuild.');
       return
     }
 
     const {collectionFileAsString, errors} = await dtsUtils.createDTSCollection(owner, repo, octokit)
     
-    await saveFileToGithub(owner, repo, collectionFileAsString, "collection.json", "update collection", octokit)
+    await saveFileToGithub(owner, repo, collectionFileAsString, collectionFile, "update collection", octokit)
     if (errors.length) {
-      await saveFileToGithub(owner, repo, JSON.stringify(errors), "errors.json", "save errors from collection update", octokit)
+      await saveFileToGithub(owner, repo, JSON.stringify(errors), errorFile, "save errors from collection update", octokit)
     }
 
 
