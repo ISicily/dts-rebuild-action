@@ -3,9 +3,11 @@
 Github action to rebuild a static DTS collection file. It is meant to be 
 run in a repository that has a folder called 'inscriptions' containing TEI inscriptions. More specifically this action was created for the [ISicily Repository](https://github.com/ISicily/ISicily). To use this action as-is, you'll pretty much need to use the same structure for your TEI files as is used in the I.Sicily 'inscriptions' directory.
 
-This action will generate a DTS collection file with entries for all of the inscriptions, and save the file to `collection.json` in the root of the project.
+This action will generate a DTS collection object with entries for all of the inscriptions, and save it to `dts/collection.json`.  You can change where the file is saved as described further below.
 
-To use, make a folder called '.github' in the root of your github project. Then make another folder inside of that called 'workflows'. Then add a file inside that folder
+It will also create a file called `dts/error.json` if there were any errors during a run.
+
+To use this action, make a folder called '.github' in the root of your github project. Then make another folder inside of that called 'workflows'. Then add a file inside that folder
 called updateCollection.yaml and add this to the file:
 
 ```
