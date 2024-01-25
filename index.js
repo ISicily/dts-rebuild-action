@@ -20,7 +20,7 @@ const main = async () => {
     const commitTimestamp = Date.parse(lastCommit.data.commit.committer.date)
     var now =  new Date();
     const twentyFourHoursAsMilliseconds = 86400000
-    const millisecondsSinceLastRun = frequency ? Integer.parse(frequency) : twentyFourHoursAsMilliseconds
+    const millisecondsSinceLastRun = frequency ? parseInt(frequency) : twentyFourHoursAsMilliseconds
 
 
     if(millisecondsSinceLastRun < now.getTime()-commitTimestamp) {
