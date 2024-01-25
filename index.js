@@ -1,49 +1,64 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
-var Buffer = require('buffer/').Buffer
+const {Base64} = require('js-base64');
+const dtsUtils = require('./dtsUtils.js')
 
 const main = async () => {
   try {
 
     const owner = core.getInput('owner', { required: true });
     const repo = core.getInput('repo', { required: true });
-    const sha = core.getInput('sha', {required: true});
     const token = core.getInput('token', { required: true });
 
     const octokit = new github.getOctokit(token);
 
-    /**
-     * 
-     * - get the previously stored collection file.
-     * - if one doesn't exist, rebuild entire collection, then exit.
-     * - if one does exist, get list of changes files (inscriptions) for the commit
-     * - if there are more than 100 changed files in the commit, rebuild all
-     * - if fewer than 100, then loop over changes files (inscriptions) generating a new collection entry for each.
-     * - add each new collection entry, or replace existing entry for the inscription.
-     * 
-     */
-    const theCommit = await octokit.rest.git.getCommit({owner, repo, sha});
-    saveFileToGithub(owner, repo, theCommit.toString())
+    const lastCommit = await octokit.rest.repos.getCommit({owner, repo, ref: 'heads/master'});
+    const commitTimestamp = Date.parse(lastCommit.data.commit.committer.date)
+    var now =  new Date();
+
+    // 86400000 milliseconds in 24hr
+    // 600000 milliseconds in ten minutes
+
+    if(600000 < now.getTime()-commitTimestamp) {
+      console.log("A commit occurred in the last ten minutes so running build...")
+    } else {
+      console.log('A commit did not occur in the last 10 minutes so exiting without rebuild.');
+      return
+    }
+
+    const {collectionFileAsString, errors} = await dtsUtils.createDTSCollection(owner, repo, octokit)
+    
+    await saveFileToGithub(owner, repo, collectionFileAsString, "collection.json", "update collection", octokit)
+    if (errors.length) {
+      await saveFileToGithub(owner, repo, JSON.stringify(errors), "errors.json", "save errors from collection update", octokit)
+    }
 
 
   } catch (error) {
+    console.log("error when running the rebuild")
+    console.log(error)
     core.setFailed(error.message);
   }
 }
 
-async function getManifestSha(owner, repo, path) {
-    const { data: { sha } } = await github.repos.getContent({owner, repo, path})
+async function getManifestSha(owner, repo, path, octokit) {
+  let sha
+  try {
+    const response = await octokit.rest.repos.getContent({owner, repo, path})
+    sha = response.data.sha
+  } catch (e) {
+    console.log(`Couldn't find ${path} in Github repository ${owner}/${repo}: ${e}`);
+  }
     return sha
 }
 
-async function saveFileToGithub(owner, repo, fileContentsAsString) {
+async function saveFileToGithub(owner, repo, fileContentsAsString, path, message, octokit) {
     try {
-        const sha = await getManifestSha(owner, repo, "collection.json")
-        let path = `collection.json`
-        let content = Buffer.from(fileContentsAsString).toString('base64')
-        let message = "update collection"
-        let config = {owner, repo, path, message, content, ...(sha && {sha})}
-        const result = await github.rest.repos.createOrUpdateFileContents(config)
+        const sha = await getManifestSha(owner, repo, path, octokit)
+       // let content = Buffer.from(fileContentsAsString).toString('base64')
+       let content = Base64.encode(fileContentsAsString)
+       let config = {owner, repo, path, message, content, ...(sha && {sha})}
+       const result = await octokit.rest.repos.createOrUpdateFileContents(config)
     } catch (e) {
         console.log(`Problem saving file ${path} back to the Github repository: ${e}`);
     }

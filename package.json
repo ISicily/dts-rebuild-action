@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-action": "ncc build index.js -o dist"
+    "buijld-action": "ncc build index.js -o dist"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +13,10 @@
   "dependencies": {
     "@actions/core": "^1.10.1",
     "@actions/github": "^6.0.0",
-    "@vercel/ncc": "^0.38.1"
+    "@vercel/ncc": "^0.38.1",
+    "axios": "^1.6.6",
+    "js-base64": "^3.7.5",
+    "lodash": "^4.17.21",
+    "xml2js": "^0.6.2"
   }
 }

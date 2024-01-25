@@ -1,0 +1,18 @@
+name: update IIIF collection
+
+on:
+  schedule: 
+      - cron: '42 2 * * *'
+      - cron: '27,29,39 20 * * *'
+jobs:
+
+  update-collection:
+    runs-on: ubuntu-latest
+    name: Updates collection files
+    steps:
+      - name: Update files
+        uses: jchartrand/ISicily-myFork@master
+        with:
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          token: ${{ github.token }}
