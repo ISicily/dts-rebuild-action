@@ -102,10 +102,10 @@ async function createDTSCollection(owner, repo, octokit) {
   let dtsRecord = _.cloneDeep(collectionTemplate)
   const inscriptionsList = await getInscriptionsList(owner, repo, octokit) 
   for (const repoFile of inscriptionsList) {
-    if (repoFile.path.endsWith('ISic000002.xml') || repoFile.path.endsWith('ISic000001.xml') || repoFile.path.endsWith('ISic000003.xml')) {
+  //  if (repoFile.path.endsWith('ISic000002.xml') || repoFile.path.endsWith('ISic000001.xml') || repoFile.path.endsWith('ISic000003.xml')) {
       let memberEntry = await createDTSMemberEntry(repoFile, errors)
       if (memberEntry) dtsRecord.member.push(memberEntry);
-    }
+  //  }
   }
   dtsRecord.totalItems = dtsRecord.member.length
   dtsRecord['dts:totalChildren'] = dtsRecord.member.length
