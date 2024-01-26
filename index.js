@@ -22,6 +22,7 @@ const main = async () => {
     const twentyFourHoursAsMilliseconds = 86400000
     const millisecondsSinceLastRun = frequency ? parseInt(frequency) : twentyFourHoursAsMilliseconds
 
+    console.log(`milliseconds since last run value: ${millisecondsSinceLastRun}`)
 
     if(millisecondsSinceLastRun < now.getTime()-commitTimestamp) {
       console.log("A commit occurred in the last 24 hours so running build...")

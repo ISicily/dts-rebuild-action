@@ -41,7 +41,8 @@ The workflow in the above config will run the action once a day at 2:42am UTC ti
 You can read more about scheduled github actions [here](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule) including how to set the
 schedule, or how to trigger the action for other events like a commit or PR.
 
-
+To change what goes into the collection.json file, look at the collection-template.json and inscription-template.json files as well as the dtsUtils.js code which populates those templates using data from the TEI files gotten
+from the inscription folder.
 
 
 
