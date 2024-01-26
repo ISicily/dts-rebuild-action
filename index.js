@@ -20,11 +20,17 @@ const main = async () => {
     const commitTimestamp = Date.parse(lastCommit.data.commit.committer.date)
     var now =  new Date();
     const twentyFourHoursAsMilliseconds = 86400000
-    const millisecondsSinceLastRun = frequency ? parseInt(frequency) : twentyFourHoursAsMilliseconds
+    const timeElapsedSinceLastRun = frequency ? parseInt(frequency) : twentyFourHoursAsMilliseconds
 
-    console.log(`milliseconds since last run value: ${millisecondsSinceLastRun}`)
+    console.log(`milliseconds since last run value: ${timeElapsedSinceLastRun}`)
 
-    if(millisecondsSinceLastRun < now.getTime()-commitTimestamp) {
+    const timeElapsedSinceLastCommit = now.getTime()-commitTimestamp
+
+    console.log(`milliseconds elapsed since last commit: ${timeElapsedSinceLastCommit}`)
+
+    console.log(`millisecondsSinceLastRun < timeElapsedSinceLastCommit: ${timeElapsedSinceLastRun < timeElapsedSinceLastCommit}` )
+    
+    if (timeElapsedSinceLastCommit < timeElapsedSinceLastRun  ) {
       console.log("A commit occurred in the last 24 hours so running build...")
     } else {
       console.log('A commit did not occur in the last 24 hours so exiting without rebuild.');
