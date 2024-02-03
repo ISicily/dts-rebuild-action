@@ -13,6 +13,9 @@ inputs:
   collectionFile:
     description: 'The path to save the collection.json file'
     required: true
+  basePublicURL:
+    description: 'The public url for the collection.json file'
+    required: true
   errorFile:
     description: 'The path to save the error file'
     required: true
