@@ -47,11 +47,12 @@ const {Base64} = __nccwpck_require__(4139);
 const collectionTemplate = __nccwpck_require__(9376)
 const inscriptionTemplate = __nccwpck_require__(2059)
 
-const createDTSMemberEntry = async (githubEntry, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, errors) => {
+const createDTSMemberEntry = async (githubEntry, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, owner, repo, octokit, errors) => {
   const path = githubEntry.path  // e.g., ISic000002.xml
   const id = path.slice(0, -4)  // remove the .xml from the end
-  const res = await axios.get(githubEntry.url);
-  const epidoc = Base64.decode(res.data.content);
+  const result = await octokit.rest.repos.getContent({owner,repo,path})
+ // const res = await axios.get(githubEntry.url);
+  const epidoc = Base64.decode(result.data.content);
     var parser = new xml2js.Parser(/* options */);
     let inscription;
     try {
@@ -99,7 +100,7 @@ async function createDTSCollection(owner, repo, permanentBaseInscriptionURI, per
   const inscriptionsList = await getInscriptionsList(owner, repo, octokit) 
   for (const repoFile of inscriptionsList) {
     //if (repoFile.path.endsWith('ISic000002.xml') || repoFile.path.endsWith('ISic000001.xml') ) {
-      let memberEntry = await createDTSMemberEntry(repoFile, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, errors)
+      let memberEntry = await createDTSMemberEntry(repoFile, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, owner, repo, octokit, errors)
       if (memberEntry) dtsRecord.member.push(memberEntry);
    // }
   }
