@@ -11,6 +11,7 @@ const main = async () => {
     const token = core.getInput('token', { required: true });
 
     const collectionFile = core.getInput('collectionFile', { required: true });
+    const basePublicURL = core.getInput('basePublicURL', { required: true });
     const errorFile = core.getInput('errorFile', { required: true });
     const frequency = core.getInput('frequency', { required: false });
 
@@ -21,15 +22,8 @@ const main = async () => {
     var now =  new Date();
     const twentyFourHoursAsMilliseconds = 86400000
     const timeElapsedSinceLastRun = frequency ? parseInt(frequency) : twentyFourHoursAsMilliseconds
-
-    console.log(`milliseconds since last run value: ${timeElapsedSinceLastRun}`)
-
     const timeElapsedSinceLastCommit = now.getTime()-commitTimestamp
 
-    console.log(`milliseconds elapsed since last commit: ${timeElapsedSinceLastCommit}`)
-
-    console.log(`millisecondsSinceLastRun < timeElapsedSinceLastCommit: ${timeElapsedSinceLastRun < timeElapsedSinceLastCommit}` )
-    
     if (timeElapsedSinceLastCommit < timeElapsedSinceLastRun  ) {
       console.log("A commit occurred in the last 24 hours so running build...")
     } else {
@@ -37,7 +31,7 @@ const main = async () => {
       return
     }
 
-    const {collectionFileAsString, errors} = await dtsUtils.createDTSCollection(owner, repo, octokit)
+    const {collectionFileAsString, errors} = await dtsUtils.createDTSCollection(owner, repo, basePublicURL, octokit)
     
     await saveFileToGithub(owner, repo, collectionFileAsString, collectionFile, "update collection", octokit)
     if (errors.length) {

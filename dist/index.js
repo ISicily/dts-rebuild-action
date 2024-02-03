@@ -40,17 +40,13 @@ module.exports = template
 /***/ 2360:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-//const { Octokit } = require("@octokit/rest");
 const axios = __nccwpck_require__(8757);
 const _ = __nccwpck_require__(250)
-//var util = require('util')
 var xml2js = __nccwpck_require__(6189);
-//const github = new Octokit();
 const collectionTemplate = __nccwpck_require__(9376)
 const inscriptionTemplate = __nccwpck_require__(2059)
 
-
-const createDTSMemberEntry = async (githubEntry, errors) => {
+const createDTSMemberEntry = async (githubEntry, basePublicURL, errors) => {
   const path = githubEntry.path
   const id = path.slice(0, -4)
   const downloadURL = `https://raw.githubusercontent.com/ISicily/ISicily/master/inscriptions/${path}`
@@ -64,7 +60,7 @@ const createDTSMemberEntry = async (githubEntry, errors) => {
         console.log(e)
         errors.push(`Problem with inscription at ${downloadURL}`)
     }
-    //if (githubEntry.path === 'ISic000001.xml') console.log(util.inspect(inscription, false, null));
+
     if (inscription && inscription.TEI) {
       let dtsMemberEntry =  _.cloneDeep(inscriptionTemplate, true);
       const dc = dtsMemberEntry['dts:dublincore']
@@ -74,8 +70,8 @@ const createDTSMemberEntry = async (githubEntry, errors) => {
       dtsMemberEntry.description = description
       dc['dc:description'][0]['@value'] = description
       dtsMemberEntry['dts:download'] = downloadURL
-      dtsMemberEntry['@id'] = `http://sicily.classics.ox.ac.uk/inscription/${id}`
-      dtsMemberEntry['dts:passage'] = `/api/dts/documents?id=${id}`
+      dtsMemberEntry['@id'] = `${basePublicURL}${id}`
+     // dtsMemberEntry['dts:passage'] = `/api/dts/documents?id=${id}`
       return dtsMemberEntry
     }
     return null
@@ -83,7 +79,7 @@ const createDTSMemberEntry = async (githubEntry, errors) => {
 }
 
 async function getInscriptionsList(owner, repo, octokit) {
-  console.log('started')
+
   let repoContents = await octokit.rest.repos.getContent({owner, repo})
 		let treeSHA = repoContents.data.find(entry=>entry.path === 'inscriptions').sha
 		let githubResponse = await octokit.rest.git.getTree(
@@ -93,26 +89,25 @@ async function getInscriptionsList(owner, repo, octokit) {
 				tree_sha: treeSHA
 			}
 		)
-    console.log("finished")
 		return githubResponse.data.tree
 }
 
-async function createDTSCollection(owner, repo, octokit) {
+async function createDTSCollection(owner, repo, basePublicURL, octokit) {
   const errors = []
   let dtsRecord = _.cloneDeep(collectionTemplate)
   const inscriptionsList = await getInscriptionsList(owner, repo, octokit) 
   for (const repoFile of inscriptionsList) {
-  //  if (repoFile.path.endsWith('ISic000002.xml') || repoFile.path.endsWith('ISic000001.xml') || repoFile.path.endsWith('ISic000003.xml')) {
-      let memberEntry = await createDTSMemberEntry(repoFile, errors)
+    if (repoFile.path.endsWith('ISic000002.xml') || repoFile.path.endsWith('ISic000001.xml') || repoFile.path.endsWith('ISic000003.xml')) {
+      console.log('the repo file: ')
+      console.log(repoFile)
+      let memberEntry = await createDTSMemberEntry(repoFile, basePublicURL, errors)
       if (memberEntry) dtsRecord.member.push(memberEntry);
-  //  }
+    }
   }
   dtsRecord.totalItems = dtsRecord.member.length
   dtsRecord['dts:totalChildren'] = dtsRecord.member.length
   return {collectionFileAsString: JSON.stringify(dtsRecord), errors}
 }
-
-
 
 module.exports = {
   createDTSCollection
@@ -61381,6 +61376,7 @@ const main = async () => {
     const token = core.getInput('token', { required: true });
 
     const collectionFile = core.getInput('collectionFile', { required: true });
+    const basePublicURL = core.getInput('basePublicURL', { required: true });
     const errorFile = core.getInput('errorFile', { required: true });
     const frequency = core.getInput('frequency', { required: false });
 
@@ -61391,15 +61387,8 @@ const main = async () => {
     var now =  new Date();
     const twentyFourHoursAsMilliseconds = 86400000
     const timeElapsedSinceLastRun = frequency ? parseInt(frequency) : twentyFourHoursAsMilliseconds
-
-    console.log(`milliseconds since last run value: ${timeElapsedSinceLastRun}`)
-
     const timeElapsedSinceLastCommit = now.getTime()-commitTimestamp
 
-    console.log(`milliseconds elapsed since last commit: ${timeElapsedSinceLastCommit}`)
-
-    console.log(`millisecondsSinceLastRun < timeElapsedSinceLastCommit: ${timeElapsedSinceLastRun < timeElapsedSinceLastCommit}` )
-    
     if (timeElapsedSinceLastCommit < timeElapsedSinceLastRun  ) {
       console.log("A commit occurred in the last 24 hours so running build...")
     } else {
@@ -61407,7 +61396,7 @@ const main = async () => {
       return
     }
 
-    const {collectionFileAsString, errors} = await dtsUtils.createDTSCollection(owner, repo, octokit)
+    const {collectionFileAsString, errors} = await dtsUtils.createDTSCollection(owner, repo, basePublicURL, octokit)
     
     await saveFileToGithub(owner, repo, collectionFileAsString, collectionFile, "update collection", octokit)
     if (errors.length) {
