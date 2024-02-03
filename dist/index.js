@@ -43,22 +43,27 @@ module.exports = template
 const axios = __nccwpck_require__(8757);
 const _ = __nccwpck_require__(250)
 var xml2js = __nccwpck_require__(6189);
+const {Base64} = __nccwpck_require__(4139);
 const collectionTemplate = __nccwpck_require__(9376)
 const inscriptionTemplate = __nccwpck_require__(2059)
 
-const createDTSMemberEntry = async (githubEntry, basePublicURL, errors) => {
-  const path = githubEntry.path
-  const id = path.slice(0, -4)
-  const downloadURL = `https://raw.githubusercontent.com/ISicily/ISicily/master/inscriptions/${path}`
-    const epidoc = await axios.get(downloadURL);
+const createDTSMemberEntry = async (githubEntry, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, errors) => {
+  const path = githubEntry.path  // e.g., ISic000002.xml
+  const id = path.slice(0, -4)  // remove the .xml from the end
+  const res = await axios.get(githubEntry.url);
+  const epidoc = Base64.decode(res.data.content);
+  console.log("the retrieved epidoc:")
+  console.log(epidoc)
+ // const downloadURL = `https://raw.githubusercontent.com/ISicily/ISicily/master/inscriptions/${path}`
+ //   const epidoc = await axios.get(downloadURL);
     var parser = new xml2js.Parser(/* options */);
     let inscription;
     try {
-         inscription = await parser.parseStringPromise(epidoc.data)
+         inscription = await parser.parseStringPromise(epidoc)
     } catch (e) {
-        console.log(`Problem with inscription at ${downloadURL}`)
+        console.log(`Problem with inscription: ${path}`)
         console.log(e)
-        errors.push(`Problem with inscription at ${downloadURL}`)
+        errors.push(`Problem with inscription: ${path}`)
     }
 
     if (inscription && inscription.TEI) {
@@ -69,8 +74,8 @@ const createDTSMemberEntry = async (githubEntry, basePublicURL, errors) => {
       dc['dc:title'][0]['@value'] = id
       dtsMemberEntry.description = description
       dc['dc:description'][0]['@value'] = description
-      dtsMemberEntry['dts:download'] = downloadURL
-      dtsMemberEntry['@id'] = `${basePublicURL}${id}`
+      dtsMemberEntry['dts:download'] = `${permanentBaseInscriptionDownloadURL}${path}`
+      dtsMemberEntry['@id'] = `${permanentBaseInscriptionURI}${id}`
      // dtsMemberEntry['dts:passage'] = `/api/dts/documents?id=${id}`
       return dtsMemberEntry
     }
@@ -92,15 +97,15 @@ async function getInscriptionsList(owner, repo, octokit) {
 		return githubResponse.data.tree
 }
 
-async function createDTSCollection(owner, repo, basePublicURL, octokit) {
+async function createDTSCollection(owner, repo, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, octokit) {
   const errors = []
   let dtsRecord = _.cloneDeep(collectionTemplate)
   const inscriptionsList = await getInscriptionsList(owner, repo, octokit) 
   for (const repoFile of inscriptionsList) {
-    if (repoFile.path.endsWith('ISic000002.xml') || repoFile.path.endsWith('ISic000001.xml') || repoFile.path.endsWith('ISic000003.xml')) {
+    if (repoFile.path.endsWith('ISic000002.xml') || repoFile.path.endsWith('ISic000001.xml') ) {
       console.log('the repo file: ')
       console.log(repoFile)
-      let memberEntry = await createDTSMemberEntry(repoFile, basePublicURL, errors)
+      let memberEntry = await createDTSMemberEntry(repoFile, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, errors)
       if (memberEntry) dtsRecord.member.push(memberEntry);
     }
   }
@@ -61376,7 +61381,8 @@ const main = async () => {
     const token = core.getInput('token', { required: true });
 
     const collectionFile = core.getInput('collectionFile', { required: true });
-    const basePublicURL = core.getInput('basePublicURL', { required: true });
+    const permanentBaseInscriptionURI = core.getInput('permanentBaseInscriptionURI', { required: true });
+    const permanentBaseInscriptionDownloadURL = core.getInput('permanentBaseInscriptionDownloadURL', { required: true });
     const errorFile = core.getInput('errorFile', { required: true });
     const frequency = core.getInput('frequency', { required: false });
 
@@ -61396,7 +61402,7 @@ const main = async () => {
       return
     }
 
-    const {collectionFileAsString, errors} = await dtsUtils.createDTSCollection(owner, repo, basePublicURL, octokit)
+    const {collectionFileAsString, errors} = await dtsUtils.createDTSCollection(owner, repo, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, octokit)
     
     await saveFileToGithub(owner, repo, collectionFileAsString, collectionFile, "update collection", octokit)
     if (errors.length) {
