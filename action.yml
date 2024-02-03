@@ -13,8 +13,11 @@ inputs:
   collectionFile:
     description: 'The path to save the collection.json file'
     required: true
-  basePublicURL:
-    description: 'The public url for the collection.json file'
+  permanentBaseInscriptionURI:
+    description: 'The public URI for an inscription.'
+    required: true
+  permanentBaseInscriptionDownloadURL:
+    description: 'The public url from which to download an inscription'
     required: true
   errorFile:
     description: 'The path to save the error file'

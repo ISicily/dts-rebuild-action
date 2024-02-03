@@ -11,7 +11,8 @@ const main = async () => {
     const token = core.getInput('token', { required: true });
 
     const collectionFile = core.getInput('collectionFile', { required: true });
-    const basePublicURL = core.getInput('basePublicURL', { required: true });
+    const permanentBaseInscriptionURI = core.getInput('permanentBaseInscriptionURI', { required: true });
+    const permanentBaseInscriptionDownloadURL = core.getInput('permanentBaseInscriptionDownloadURL', { required: true });
     const errorFile = core.getInput('errorFile', { required: true });
     const frequency = core.getInput('frequency', { required: false });
 
@@ -31,7 +32,7 @@ const main = async () => {
       return
     }
 
-    const {collectionFileAsString, errors} = await dtsUtils.createDTSCollection(owner, repo, basePublicURL, octokit)
+    const {collectionFileAsString, errors} = await dtsUtils.createDTSCollection(owner, repo, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, octokit)
     
     await saveFileToGithub(owner, repo, collectionFileAsString, collectionFile, "update collection", octokit)
     if (errors.length) {
