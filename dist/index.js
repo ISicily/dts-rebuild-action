@@ -52,10 +52,6 @@ const createDTSMemberEntry = async (githubEntry, permanentBaseInscriptionURI, pe
   const id = path.slice(0, -4)  // remove the .xml from the end
   const res = await axios.get(githubEntry.url);
   const epidoc = Base64.decode(res.data.content);
-  console.log("the retrieved epidoc:")
-  console.log(epidoc)
- // const downloadURL = `https://raw.githubusercontent.com/ISicily/ISicily/master/inscriptions/${path}`
- //   const epidoc = await axios.get(downloadURL);
     var parser = new xml2js.Parser(/* options */);
     let inscription;
     try {
@@ -102,12 +98,10 @@ async function createDTSCollection(owner, repo, permanentBaseInscriptionURI, per
   let dtsRecord = _.cloneDeep(collectionTemplate)
   const inscriptionsList = await getInscriptionsList(owner, repo, octokit) 
   for (const repoFile of inscriptionsList) {
-    if (repoFile.path.endsWith('ISic000002.xml') || repoFile.path.endsWith('ISic000001.xml') ) {
-      console.log('the repo file: ')
-      console.log(repoFile)
+    //if (repoFile.path.endsWith('ISic000002.xml') || repoFile.path.endsWith('ISic000001.xml') ) {
       let memberEntry = await createDTSMemberEntry(repoFile, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, errors)
       if (memberEntry) dtsRecord.member.push(memberEntry);
-    }
+   // }
   }
   dtsRecord.totalItems = dtsRecord.member.length
   dtsRecord['dts:totalChildren'] = dtsRecord.member.length
