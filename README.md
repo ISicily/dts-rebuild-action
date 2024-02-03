@@ -13,7 +13,7 @@ To use this action, make a folder called '.github' in the root of your github pr
 name: update DTS collection file
 on:
   schedule: 
-      - cron: '12 1 * * *'
+      - cron: '42 2 * * *'
 jobs:
   update-collection:
     runs-on: ubuntu-latest
