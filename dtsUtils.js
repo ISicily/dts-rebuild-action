@@ -5,9 +5,11 @@ const {Base64} = require('js-base64');
 const collectionTemplate = require("./collection-template.js")
 const inscriptionTemplate = require("./inscription-template.js")
 
+const INSRIPTIONS_FOLDER = "inscriptions"
+
 const createDTSMemberEntry = async (githubEntry, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, owner, repo, octokit, errors) => {
-  const path = githubEntry.path  // e.g., ISic000002.xml
-  const id = path.slice(0, -4)  // remove the .xml from the end
+  const path = `${INSRIPTIONS_FOLDER}/${githubEntry.path}`  // e.g., ISic000002.xml
+  const id = githubEntry.path.slice(0, -4)  // remove the .xml from the end
   const result = await octokit.rest.repos.getContent({owner,repo,path})
  // const res = await axios.get(githubEntry.url);
   const epidoc = Base64.decode(result.data.content);
@@ -41,7 +43,7 @@ const createDTSMemberEntry = async (githubEntry, permanentBaseInscriptionURI, pe
 async function getInscriptionsList(owner, repo, octokit) {
 
   let repoContents = await octokit.rest.repos.getContent({owner, repo})
-		let treeSHA = repoContents.data.find(entry=>entry.path === 'inscriptions').sha
+		let treeSHA = repoContents.data.find(entry=>entry.path === INSRIPTIONS_FOLDER).sha
 		let githubResponse = await octokit.rest.git.getTree(
 			{
 				owner,
