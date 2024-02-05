@@ -22,9 +22,6 @@ inputs:
   errorFile:
     description: 'The path to save the error file'
     required: true
-  frequency:
-    description: 'How often the job runs, in milliseconds. 24 hours by default'
-    required: true
 runs:
   using: 'node20'
   main: 'dist/index.js'
