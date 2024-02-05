@@ -29,7 +29,6 @@ jobs:
           permanentBaseInscriptionURI: http://sicily.classics.ox.ac.uk/inscription/
           permanentBaseInscriptionDownloadURL: https://raw.githubusercontent.com/ISicily/ISicily/master/inscriptions/
           errorFile: dts/error.json
-          frequency: 86400000
 ```
 
 You can change the `collectionFile` and `errorFile` values if you'd like to save the files to a different directory and/or file name.
@@ -52,22 +51,18 @@ With I.Sicily the inscriptions can be downloaded from a url like so:
 
 `http://sicily.classics.ox.ac.uk/inscription/ISic0000001.xml`
 
-and so the `permanentBaseInscriptionDownloadURL` is:
+and so in that case the `permanentBaseInscriptionDownloadURL` is:
 
 `http://sicily.classics.ox.ac.uk/inscription/`
 
 As you can see, the id for the inscription, and the `.xml` file extension are both tacked onto the end of the `permanentBaseInscriptionDownloadURL`.
-
-The `frequency` should be set to the number of milliseconds between runs of the action (as set in the cron section). This is used to check for any commits since the last run. If there've been no commits, we don't
-run the job.
 
 The workflow in the above config will run the action once a day at 2:42am UTC time. The 'cron' entry dictates when the action runs.
 
 You can read more about scheduled github actions [here](https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule) including how to set the
 schedule, or how to trigger the action for other events like a commit or PR.
 
-To change what goes into the collection.json file, look at the collection-template.json and inscription-template.json files as well as the dtsUtils.js code which populates those templates using data from the TEI files gotten
-from the inscription folder.
+To change what goes into the collection.json file, look at the collection-template.json and inscription-template.json files as well as the dtsUtils.js code which populates those templates using data from the TEI files gotten from the inscription folder.
 
 
 
