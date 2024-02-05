@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "buijld-action": "ncc build index.js -o dist"
+    "buijld-action": "ncc build index.js -o dist",
+    "rebuild-all": "node rebuild.js"
   },
   "keywords": [],
   "author": "",
@@ -16,7 +17,9 @@
     "@vercel/ncc": "^0.38.1",
     "axios": "^1.6.6",
     "js-base64": "^3.7.5",
+    "jszip": "^3.10.1",
     "lodash": "^4.17.21",
+    "octokit": "^3.1.2",
     "xml2js": "^0.6.2"
   }
 }

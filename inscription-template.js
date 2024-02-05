@@ -21,7 +21,6 @@ const template = {
         "dc:contributor": ["I.Sicily Contributors"],
         "dc:language": ["en"]
     },
-    "dts:passage": "/api/dts/documents?id=",
     "dts:download": "https://raw.githubusercontent.com/",
     "dts:citeDepth": 2,
     "dts:citeStructure": [
