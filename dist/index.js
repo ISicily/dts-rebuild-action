@@ -40,24 +40,19 @@ module.exports = template
 /***/ 2360:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-//const axios = require('axios');
 const _ = __nccwpck_require__(250)
 var xml2js = __nccwpck_require__(6189);
 var JSZip = __nccwpck_require__(3592);
-//const {Base64} = require('js-base64');
+
 const collectionTemplate = __nccwpck_require__(9376)
 const inscriptionTemplate = __nccwpck_require__(2059)
-
 const githubUtils = __nccwpck_require__(9234)
+
 const INSRIPTIONS_FOLDER = "inscriptions"
 
 const createDTSMemberEntry = async (epidoc, fileName, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, errors) => {
-  // const path = `${INSRIPTIONS_FOLDER}/${githubEntry.path}`  // e.g., ISic000002.xml
   const path = `${INSRIPTIONS_FOLDER}/${fileName}`
-  const id = fileName.slice(0, -4)  // remove the .xml from the end and inscriptions/ from the beginning
-  // const result = await octokit.rest.repos.getContent({owner,repo,path})
-  // const res = await axios.get(githubEntry.url);
-  //const epidoc = Base64.decode(result.data.content);
+  const id = fileName.slice(0, -4)  // remove the .xml extension from the end 
   var parser = new xml2js.Parser(/* options */);
   let inscription;
   try {
@@ -74,7 +69,6 @@ const createDTSMemberEntry = async (epidoc, fileName, permanentBaseInscriptionUR
     const description = inscription.TEI.teiHeader[0].fileDesc[0].titleStmt[0].title[0]
     dtsMemberEntry.title = id
     dc['dc:title'][0]['@value'] = id
-    // dc['dc:identifier'][0]['@value'] = githubEntry.sha
     dtsMemberEntry.description = description
     dc['dc:description'][0]['@value'] = description
     dtsMemberEntry['dts:download'] = `${permanentBaseInscriptionDownloadURL}${fileName}`
@@ -83,46 +77,10 @@ const createDTSMemberEntry = async (epidoc, fileName, permanentBaseInscriptionUR
     return dtsMemberEntry
   }
   return null
-
 }
-
-/* async function getInscriptionsList(owner, repo, octokit) {
-
-  let repoContents = await octokit.rest.repos.getContent({owner, repo})
-    let treeSHA = repoContents.data.find(entry=>entry.path === INSRIPTIONS_FOLDER).sha
-    let githubResponse = await octokit.rest.git.getTree(
-      {
-        owner,
-        repo,
-        tree_sha: treeSHA
-      }
-    )
-    return githubResponse.data.tree
-}
-
-async function createDTSCollection(owner, repo, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, octokit) {
-  const errors = []
-  let dtsRecord = _.cloneDeep(collectionTemplate)
-  const inscriptionsList = await getInscriptionsList(owner, repo, octokit) 
-  for (const repoFile of inscriptionsList) {
-    if (repoFile.path.endsWith('ISic000002.xml') || repoFile.path.endsWith('ISic000001.xml') ) {
-      let memberEntry = await createDTSMemberEntry(repoFile, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, owner, repo, octokit, errors)
-      if (memberEntry) dtsRecord.member.push(memberEntry);
-    }
-  }
-  dtsRecord.totalItems = dtsRecord.member.length
-  dtsRecord['dts:totalChildren'] = dtsRecord.member.length
-  const collectionFileAsString = JSON.stringify(dtsRecord)
-  //return {collectionFileAsString: JSON.stringify(dtsRecord), errors}
-
-  await githubUtils.saveFileToGithub(owner, repo, collectionFileAsString, collectionFile, "update collection", octokit)
-  if (errors.length) {
-    await githubUtils.saveFileToGithub(owner, repo, JSON.stringify(errors), errorFile, "save errors from collection update", octokit)
-  }
-}
- */
 
 async function createDTSCollection(owner, repo, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, collectionFile, errorFile, octokit) {
+  console.log("Starting the collection build...")
   const errors = []
   let dtsRecord = _.cloneDeep(collectionTemplate)
 
@@ -138,40 +96,26 @@ async function createDTSCollection(owner, repo, permanentBaseInscriptionURI, per
     return file.name.includes("/inscriptions/ISic") && file.name.endsWith('.xml')
   });
 
+  console.log(`Parsed the zip - ${inscriptionFiles.length} inscription files.`)
+  console.log(`Adding entries to collection file...`)
   for (const file of inscriptionFiles) {
     const epidoc = await zip.file(file.name).async("string")
     const filePath = file.name.slice(-14)
     let memberEntry = await createDTSMemberEntry(epidoc, filePath, permanentBaseInscriptionURI, permanentBaseInscriptionDownloadURL, errors)
     if (memberEntry) dtsRecord.member.push(memberEntry);
   }
-  dtsRecord.totalItems = dtsRecord.member.length
-  dtsRecord['dts:totalChildren'] = dtsRecord.member.length
+  const totalRecords = dtsRecord.member.length
+  dtsRecord.totalItems = totalRecords
+  dtsRecord['dts:totalChildren'] = totalRecords
   const collectionFileAsString = JSON.stringify(dtsRecord)
-  //return {collectionFileAsString: JSON.stringify(dtsRecord), errors}
-
+  console.log(`Saving collections file with ${totalRecords} records...`)
   await githubUtils.saveFileToGithub(owner, repo, collectionFileAsString, collectionFile, "update collection", octokit)
   if (errors.length) {
+    console.log("Saving errors file.")
     await githubUtils.saveFileToGithub(owner, repo, JSON.stringify(errors), errorFile, "save errors from collection update", octokit)
   }
-
+  console.log(`Done.`)
 };
-
-/* request({
-  method : "GET",
-  url : "http://localhost/.../file.zip",
-  encoding: null // <- this one is important !
-}, function (error, response, body) {
-  if(error ||  response.statusCode !== 200) {
-    // handle error
-    return;
-  }
-  JSZip.loadAsync(body).then(function (zip) {
-    return zip.file("content.txt").async("string");
-  }).then(function (text) {
-    console.log(text);
-  });
-}); */
-//}
 
 module.exports = {
   createDTSCollection
