@@ -7,7 +7,7 @@ This action will generate a DTS collection object with entries for all of the in
 
 It will also create a file called `dts/error.json` if there were any errors during a run.
 
-To use this action, make a folder called '.github' in the root of your github project (your project that has an 'insccriptions' folder containing TEI inscriptions). Then make another folder inside of that called 'workflows'. Then add a file inside that folder called updateCollection.yaml and add this to the file:
+To use this action, make a folder called '.github' in the root of your github project (your project that has an 'inscriptions' folder containing TEI inscriptions). Then make another folder inside of that called 'workflows'. Then add a file inside that folder called updateCollection.yaml and add this to the file:
 
 ```
 name: update DTS collection file
@@ -30,7 +30,7 @@ jobs:
           permanentBaseInscriptionDownloadURL: https://raw.githubusercontent.com/ISicily/ISicily/master/inscriptions/
           errorFile: dts/error.json
 ```
-
+<br/><br/>
 You can change the `collectionFile` and `errorFile` values if you'd like to save the files to a different directory and/or file name.
 
 The `permanentBaseInscriptionURI` value should be the base uri for the identifiers of your inscriptions. These identifiers are added to the dts entry for each inscription. 
@@ -64,5 +64,16 @@ schedule, or how to trigger the action for other events like a commit or PR.
 
 To change what goes into the collection.json file, look at the collection-template.json and inscription-template.json files as well as the dtsUtils.js code which populates those templates using data from the TEI files gotten from the inscription folder.
 
+# Important
+
+You likely have to grant your action permisson to write to your repository.  Do that by opening the Settings screen for the repository, and then choosing Actions/General, like so:
+
+<img width="1020" alt="image" src="https://github.com/ISicily/dts-rebuild-action/assets/547165/576ad8be-0eac-4a6a-afae-f4bdd818c055">
+<br/><br/><br/><br/>
+Then scroll down to the 'Workflow Permissions' section and select 'Read and write permissions', like so:
+<br/><br/><br/><br/>
+<img width="1016" alt="image" src="https://github.com/ISicily/dts-rebuild-action/assets/547165/a7139684-3360-46b7-a421-4be1d0e16a44">
+<br/><br/><br/><br/>
+And finally 'Save'
 
 
