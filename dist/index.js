@@ -10,7 +10,7 @@ const template = {
         "dc": "http://purl.org/dc/terms/",
         "dts": "https://w3id.org/dts/api#",
     },
-    "@id": "http://http://sicily.classics.ox.ac.uk",
+    "@id": "http://sicily.classics.ox.ac.uk",
     "@type": "Collection",
     "title" : "I.Sicily",
     "dts:dublincore": {
